@@ -1,0 +1,277 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+
+  /* AetherOS Premium Enterprise Theme */
+  --background: #0a0b0f;
+  --foreground: #e8e9ed;
+  --card: #13151c;
+  --card-foreground: #e8e9ed;
+  --popover: #13151c;
+  --popover-foreground: #e8e9ed;
+  --primary: #0ea5e9;
+  --primary-foreground: #ffffff;
+  --secondary: #1e2129;
+  --secondary-foreground: #e8e9ed;
+  --muted: #1e2129;
+  --muted-foreground: #71717a;
+  --accent: #06b6d4;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.05);
+  --input-background: #1e2129;
+  --switch-background: #3f3f46;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #0ea5e9;
+
+  /* AetherOS Custom Colors */
+  --graphite: #0a0b0f;
+  --slate-dark: #13151c;
+  --slate-medium: #1e2129;
+  --slate-light: #2a2d38;
+  --electric-blue: #0ea5e9;
+  --cyan: #06b6d4;
+  --cyan-light: #22d3ee;
+  --text-primary: #e8e9ed;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #0ea5e9;
+  --purple: #8b5cf6;
+
+  /* Chart colors - operational */
+  --chart-1: #0ea5e9;
+  --chart-2: #06b6d4;
+  --chart-3: #8b5cf6;
+  --chart-4: #22c55e;
+  --chart-5: #f59e0b;
+
+  --radius: 0.5rem;
+  --sidebar: #0a0b0f;
+  --sidebar-foreground: #e8e9ed;
+  --sidebar-primary: #0ea5e9;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e2129;
+  --sidebar-accent-foreground: #e8e9ed;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #0ea5e9;
+
+  /* Scrollbar custom properties */
+  --scrollbar-width: 6px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+
+  /* Animation keyframe durations */
+  --duration-shimmer: 1.5s;
+  --duration-pulse-glow: 2s;
+  --duration-signal-flow: 1s;
+  --duration-typing: 1.4s;
+  --duration-data-flow: 3s;
+  --duration-scan-line: 4s;
+  --duration-orbit-spin: 20s;
+}
+
+.dark {
+  --background: #0a0b0f;
+  --foreground: #e8e9ed;
+  --card: #13151c;
+  --card-foreground: #e8e9ed;
+  --popover: #13151c;
+  --popover-foreground: #e8e9ed;
+  --primary: #0ea5e9;
+  --primary-foreground: #ffffff;
+  --secondary: #1e2129;
+  --secondary-foreground: #e8e9ed;
+  --muted: #1e2129;
+  --muted-foreground: #71717a;
+  --accent: #06b6d4;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.05);
+  --ring: #0ea5e9;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: #0ea5e9;
+  --chart-2: #06b6d4;
+  --chart-3: #8b5cf6;
+  --chart-4: #22c55e;
+  --chart-5: #f59e0b;
+  --sidebar: #0a0b0f;
+  --sidebar-foreground: #e8e9ed;
+  --sidebar-primary: #0ea5e9;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e2129;
+  --sidebar-accent-foreground: #e8e9ed;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #0ea5e9;
+
+  --scrollbar-width: 6px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+  --color-purple: var(--purple);
+  --color-graphite: var(--graphite);
+  --color-slate-dark: var(--slate-dark);
+  --color-slate-medium: var(--slate-medium);
+  --color-slate-light: var(--slate-light);
+  --color-electric-blue: var(--electric-blue);
+  --color-cyan: var(--cyan);
+  --color-cyan-light: var(--cyan-light);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+/* Additional Keyframe Animations */
+@keyframes data-flow {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.3; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes orbit-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes count-up {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+.animate-data-flow { animation: data-flow var(--duration-data-flow) linear infinite; }
+.animate-pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+.animate-scan-line { animation: scan-line var(--duration-scan-line) linear infinite; }
+.animate-orbit-spin { animation: orbit-spin var(--duration-orbit-spin) linear infinite; }
+.animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+.animate-count-up { animation: count-up 1.5s ease-out; }
