@@ -1,10 +1,13 @@
 import config from '../../config/index.js';
 import logger from '../../utils/logger.js';
 import { dynatraceMCP } from '../../services/dynatrace/mcpClient.js';
-import { getMongoStatus } from '../../services/database/mongoClient.js';
+import { getSupabaseStatus } from '../../services/database/supabaseClient.js';
 import { getRedisStatus } from '../../services/cache/redisClient.js';
 
 const settingsStore = {
+  supabase: {
+    url: config.supabase.url,
+  },
   dynatrace: {
     apiUrl: config.dynatrace.apiUrl,
     mcpEnabled: config.dynatrace.mcpEnabled,
@@ -25,11 +28,11 @@ const settingsStore = {
   },
 };
 
-export const getSettings = (req, res) => {
+export const getSettings = async (req, res) => {
   res.json({
     ...settingsStore,
     system: {
-      mongoStatus: getMongoStatus(),
+      supabaseStatus: await getSupabaseStatus(),
       redisStatus: getRedisStatus(),
       nodeEnv: config.env,
     },
@@ -57,9 +60,9 @@ export const testIntegration = async (req, res, next) => {
         res.json({ success: true, message: 'Dynatrace connection verified', result });
         break;
       }
-      case 'mongodb': {
-        const status = getMongoStatus();
-        res.json({ success: status.isConnected, message: status.isConnected ? 'MongoDB connected' : 'MongoDB disconnected' });
+      case 'supabase': {
+        const status = await getSupabaseStatus();
+        res.json({ success: status.isConnected, message: status.isConnected ? 'Supabase connected' : 'Supabase disconnected' });
         break;
       }
       case 'redis': {

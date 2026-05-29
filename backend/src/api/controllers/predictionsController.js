@@ -1,18 +1,20 @@
+import supabase from '../../services/database/supabaseClient.js';
 import { orchestrator } from '../../services/agents/orchestrator.js';
-import { AgentMemory } from '../../services/database/models/agentMemory.js';
+import { toCamelCase } from '../../utils/transform.js';
 
 export const getPredictions = async (req, res, next) => {
   try {
     const { limit = 20, offset = 0 } = req.query;
-    const [predictions, total] = await Promise.all([
-      AgentMemory.find({ agentId: 'predictive-agent' })
-        .sort({ createdAt: -1 })
-        .skip(Number(offset))
-        .limit(Number(limit)),
-      AgentMemory.countDocuments({ agentId: 'predictive-agent' }),
-    ]);
 
-    res.json({ predictions, total, offset: Number(offset), limit: Number(limit) });
+    const { data: predictions, count: total, error } = await supabase
+      .from('agent_memory')
+      .select('*', { count: 'exact' })
+      .eq('agent_id', 'predictive-agent')
+      .order('created_at', { ascending: false })
+      .range(Number(offset), Number(offset) + Number(limit) - 1);
+
+    if (error) throw error;
+    res.json({ predictions: predictions.map(toCamelCase), total, offset: Number(offset), limit: Number(limit) });
   } catch (err) {
     next(err);
   }
@@ -20,16 +22,18 @@ export const getPredictions = async (req, res, next) => {
 
 export const getPredictionById = async (req, res, next) => {
   try {
-    const prediction = await AgentMemory.findOne({
-      agentId: 'predictive-agent',
-      sessionId: req.params.id,
-    });
+    const { data: prediction, error } = await supabase
+      .from('agent_memory')
+      .select('*')
+      .eq('agent_id', 'predictive-agent')
+      .eq('session_id', req.params.id)
+      .single();
 
-    if (!prediction) {
-      return res.status(404).json({ error: 'Prediction not found' });
+    if (error) {
+      if (error.code === 'PGRST116') return res.status(404).json({ error: 'Prediction not found' });
+      throw error;
     }
-
-    res.json(prediction);
+    res.json(toCamelCase(prediction));
   } catch (err) {
     next(err);
   }

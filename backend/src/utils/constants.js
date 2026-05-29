@@ -43,6 +43,15 @@ export const SOCKET_EVENTS = {
   CONNECTION_ACK: 'connection:ack',
 };
 
+export const AGENT_DISPLAY_NAMES = {
+  'root-cause-agent': 'Root Cause Analyzer',
+  'predictive-agent': 'Predictive Analyzer',
+  'security-agent': 'Security Monitor',
+  'infrastructure-agent': 'Infrastructure Analyzer',
+  'response-agent': 'Response Planner',
+  'master-orchestrator': 'AI Orchestrator',
+};
+
 export const MCP_TOOLS = {
   GET_PROBLEMS: 'get_problems',
   LIST_PROBLEMS: 'list_problems',
@@ -55,7 +64,7 @@ export const MCP_TOOLS = {
 };
 
 export const ANALYSIS_INTERVALS = {
-  PREDICTIVE: 5 * 60 * 1000,
-  INFRASTRUCTURE: 60 * 1000,
-  SECURITY: 2 * 60 * 1000,
+  PREDICTIVE: 30 * 60 * 1000,
+  INFRASTRUCTURE: 15 * 60 * 1000,
+  SECURITY: 15 * 60 * 1000,
 };

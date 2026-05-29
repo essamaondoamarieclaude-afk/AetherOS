@@ -1,5 +1,6 @@
+import supabase from '../../services/database/supabaseClient.js';
 import { orchestrator } from '../../services/agents/orchestrator.js';
-import { AgentMemory } from '../../services/database/models/agentMemory.js';
+import { toCamelCase } from '../../utils/transform.js';
 import { AGENT_NAMES } from '../../utils/constants.js';
 
 export const getAgentStatuses = (req, res) => {
@@ -32,15 +33,15 @@ export const getAgentHistory = async (req, res, next) => {
     const { agentName } = req.params;
     const { limit = 50, offset = 0 } = req.query;
 
-    const [entries, total] = await Promise.all([
-      AgentMemory.find({ agentId: agentName })
-        .sort({ createdAt: -1 })
-        .skip(Number(offset))
-        .limit(Number(limit)),
-      AgentMemory.countDocuments({ agentId: agentName }),
-    ]);
+    const { data: entries, count: total, error } = await supabase
+      .from('agent_memory')
+      .select('*', { count: 'exact' })
+      .eq('agent_id', agentName)
+      .order('created_at', { ascending: false })
+      .range(Number(offset), Number(offset) + Number(limit) - 1);
 
-    res.json({ entries, total, offset: Number(offset), limit: Number(limit) });
+    if (error) throw error;
+    res.json({ entries: entries.map(toCamelCase), total, offset: Number(offset), limit: Number(limit) });
   } catch (err) {
     next(err);
   }

@@ -1,9 +1,9 @@
 import { geminiClient } from '../gemini/geminiClient.js';
 import { dynatraceMCP } from '../dynatrace/mcpClient.js';
+import supabase from '../database/supabaseClient.js';
 import logger from '../../utils/logger.js';
 import { generateId, now, formatAgentOutput } from '../../utils/helpers.js';
 import { AGENT_STATUS, AGENT_NAMES } from '../../utils/constants.js';
-import { AgentMemory } from '../database/models/agentMemory.js';
 
 export class BaseAgent {
   constructor(name, systemPrompt, mcpTools = []) {
@@ -97,21 +97,22 @@ Provide your structured analysis output.`;
 
   async _recordMemory(taskId, input, result, processingTimeMs, context) {
     try {
-      await AgentMemory.create({
-        agentId: this.name,
-        sessionId: taskId,
-        incidentId: context.incidentId,
+      const { error } = await supabase.from('agent_memory').insert({
+        agent_id: this.name,
+        session_id: taskId,
+        incident_id: context.incidentId,
         input,
         output: result,
-        confidenceScore: result.confidenceScore || 0,
-        processingTimeMs,
-        toolsUsed: this.mcpTools,
+        confidence_score: result.confidenceScore || 0,
+        processing_time_ms: processingTimeMs,
+        tools_used: this.mcpTools,
         context: {
           dynatraceProblemId: context.dynatraceProblemId,
           relatedEntities: context.relatedEntities || [],
           metricsUsed: context.metricsUsed || [],
         },
       });
+      if (error) throw error;
     } catch (err) {
       logger.warn('Failed to save agent memory', { error: err.message });
     }

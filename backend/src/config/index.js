@@ -20,8 +20,9 @@ const config = {
     apiKey: process.env.GEMINI_API_KEY,
     model: process.env.GEMINI_MODEL || 'gemini-2.0-flash-001',
   },
-  mongodb: {
-    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/aetheros',
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    serviceKey: process.env.SUPABASE_SERVICE_KEY,
   },
   redis: {
     url: process.env.REDIS_URL || 'redis://localhost:6379',

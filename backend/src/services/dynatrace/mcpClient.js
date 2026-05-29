@@ -2,11 +2,19 @@ import axios from 'axios';
 import config from '../../config/index.js';
 import logger from '../../utils/logger.js';
 import { getCache, setCache } from '../cache/redisClient.js';
+import { setServiceHealth } from '../health.js';
 
 class DynatraceMCPClient {
   constructor() {
+    this.ready = Boolean(config.dynatrace.apiUrl && config.dynatrace.apiToken);
+    setServiceHealth('dynatrace', this.ready);
+    if (!this.ready) {
+      logger.warn('Dynatrace not configured. MCP features will be unavailable.');
+      this.client = null;
+      return;
+    }
     this.client = axios.create({
-      baseURL: config.dynatrace.apiUrl,
+      baseURL: config.dynatrace.apiUrl.replace(/\/+$/, ''),
       headers: {
         Authorization: `Api-Token ${config.dynatrace.apiToken}`,
         'Content-Type': 'application/json',
@@ -16,6 +24,10 @@ class DynatraceMCPClient {
   }
 
   async callTool(toolName, params = {}) {
+    if (!this.ready || !this.client) {
+      throw new Error('Dynatrace MCP not configured — set DT_API_URL and DT_API_TOKEN');
+    }
+
     const cacheKey = `dt:mcp:${toolName}:${JSON.stringify(params)}`;
     const cached = await getCache(cacheKey);
     if (cached) return cached;

@@ -1,0 +1,6 @@
+{
+  "name": "AetherOS",
+  "description": "The Operational Nervous System of Next-Generation Digital Enterprises. An autonomous observability and cognitive workflow layer integrated with Dynatrace MCP and Gemini reasoning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

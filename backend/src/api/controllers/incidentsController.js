@@ -1,21 +1,21 @@
-import { Incident } from '../../services/database/models/incidents.js';
+import supabase from '../../services/database/supabaseClient.js';
 import { orchestrator } from '../../services/agents/orchestrator.js';
+import { toCamelCase } from '../../utils/transform.js';
 import logger from '../../utils/logger.js';
-import { generateId } from '../../utils/helpers.js';
 
 export const getIncidents = async (req, res, next) => {
   try {
     const { status, severity, limit = 50, offset = 0 } = req.query;
-    const filter = {};
-    if (status) filter.status = status;
-    if (severity) filter.severity = severity;
+    let query = supabase.from('incidents').select('*', { count: 'exact' });
+    if (status) query = query.eq('status', status);
+    if (severity) query = query.eq('severity', severity);
 
-    const [incidents, total] = await Promise.all([
-      Incident.find(filter).sort({ createdAt: -1 }).skip(Number(offset)).limit(Number(limit)),
-      Incident.countDocuments(filter),
-    ]);
+    const { data: incidents, count: total, error } = await query
+      .order('created_at', { ascending: false })
+      .range(Number(offset), Number(offset) + Number(limit) - 1);
 
-    res.json({ incidents, total, offset: Number(offset), limit: Number(limit) });
+    if (error) throw error;
+    res.json({ incidents: incidents.map(toCamelCase), total, offset: Number(offset), limit: Number(limit) });
   } catch (err) {
     next(err);
   }
@@ -23,11 +23,14 @@ export const getIncidents = async (req, res, next) => {
 
 export const getIncidentById = async (req, res, next) => {
   try {
-    const incident = await Incident.findOne({ incidentId: req.params.id });
-    if (!incident) {
-      return res.status(404).json({ error: 'Incident not found' });
+    const { data: incident, error } = await supabase
+      .from('incidents').select('*').eq('incident_id', req.params.id).single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return res.status(404).json({ error: 'Incident not found' });
+      throw error;
     }
-    res.json(incident);
+    res.json(toCamelCase(incident));
   } catch (err) {
     next(err);
   }
@@ -54,23 +57,39 @@ export const analyzeIncident = async (req, res, next) => {
 
 export const approveRemediation = async (req, res, next) => {
   try {
-    const incident = await Incident.findOne({ incidentId: req.params.id });
-    if (!incident) {
-      return res.status(404).json({ error: 'Incident not found' });
+    const { data: incident, error: fetchErr } = await supabase
+      .from('incidents').select('*').eq('incident_id', req.params.id).single();
+
+    if (fetchErr) {
+      if (fetchErr.code === 'PGRST116') return res.status(404).json({ error: 'Incident not found' });
+      throw fetchErr;
     }
 
-    incident.remediation.approved = true;
-    incident.remediation.approvedBy = req.user?.email || 'analyst';
-    incident.remediation.approvedAt = new Date();
-    incident.status = 'remediating';
-    incident.timeline.push({
+    const updatedTimeline = [...(incident.timeline || []), {
+      timestamp: new Date().toISOString(),
       event: 'remediation_approved',
       actor: req.user?.email || 'analyst',
       details: 'Remediation plan approved',
-    });
+    }];
 
-    await incident.save();
-    res.json(incident);
+    const { data: updated, error: updateErr } = await supabase
+      .from('incidents').update({
+        remediation: {
+          ...(incident.remediation || {}),
+          approved: true,
+          approvedBy: req.user?.email || 'analyst',
+          approvedAt: new Date().toISOString(),
+        },
+        status: 'remediating',
+        timeline: updatedTimeline,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('incident_id', req.params.id)
+      .select()
+      .single();
+
+    if (updateErr) throw updateErr;
+    res.json(toCamelCase(updated));
   } catch (err) {
     next(err);
   }
@@ -78,21 +97,37 @@ export const approveRemediation = async (req, res, next) => {
 
 export const closeIncident = async (req, res, next) => {
   try {
-    const incident = await Incident.findOne({ incidentId: req.params.id });
-    if (!incident) {
-      return res.status(404).json({ error: 'Incident not found' });
+    const { data: incident, error: fetchErr } = await supabase
+      .from('incidents').select('*').eq('incident_id', req.params.id).single();
+
+    if (fetchErr) {
+      if (fetchErr.code === 'PGRST116') return res.status(404).json({ error: 'Incident not found' });
+      throw fetchErr;
     }
 
-    incident.status = 'closed';
-    incident.remediation.resolvedAt = new Date();
-    incident.timeline.push({
+    const updatedTimeline = [...(incident.timeline || []), {
+      timestamp: new Date().toISOString(),
       event: 'incident_closed',
       actor: req.user?.email || 'analyst',
       details: req.body.reason || 'Incident resolved',
-    });
+    }];
 
-    await incident.save();
-    res.json(incident);
+    const { data: updated, error: updateErr } = await supabase
+      .from('incidents').update({
+        status: 'closed',
+        remediation: {
+          ...(incident.remediation || {}),
+          resolvedAt: new Date().toISOString(),
+        },
+        timeline: updatedTimeline,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('incident_id', req.params.id)
+      .select()
+      .single();
+
+    if (updateErr) throw updateErr;
+    res.json(toCamelCase(updated));
   } catch (err) {
     next(err);
   }

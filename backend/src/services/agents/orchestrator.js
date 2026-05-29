@@ -10,6 +10,7 @@ import { dynatraceMCP } from '../dynatrace/mcpClient.js';
 import logger from '../../utils/logger.js';
 import { generateId, now } from '../../utils/helpers.js';
 import { AGENT_NAMES, AGENT_STATUS, SOCKET_EVENTS, SEVERITY_LEVELS } from '../../utils/constants.js';
+import { getServiceHealth } from '../health.js';
 
 export class MasterOrchestrator extends BaseAgent {
   constructor() {
@@ -89,7 +90,17 @@ export class MasterOrchestrator extends BaseAgent {
     }
   }
 
+  _servicesReady() {
+    const health = getServiceHealth();
+    if (!health.gemini) {
+      logger.warn('Skipping analysis cycle — Gemini API not configured');
+      return false;
+    }
+    return true;
+  }
+
   async runPredictiveAnalysis() {
+    if (!this._servicesReady()) return;
     logger.info('Orchestrator running predictive analysis cycle');
 
     try {
@@ -102,6 +113,7 @@ export class MasterOrchestrator extends BaseAgent {
   }
 
   async runInfrastructureScan() {
+    if (!this._servicesReady()) return;
     logger.info('Orchestrator running infrastructure scan');
 
     try {
@@ -114,6 +126,7 @@ export class MasterOrchestrator extends BaseAgent {
   }
 
   async runSecurityAnalysis() {
+    if (!this._servicesReady()) return;
     logger.info('Orchestrator running security analysis');
 
     try {
@@ -137,7 +150,7 @@ ${agentResults.map((r) => `
 ${JSON.stringify(r.finding, null, 2)}
 `).join('\n')}
 
-Synthesize these findings into a unified operational intelligence report. Prioritize by severity and impact.`;
+Combine these findings into a clear summary report. Prioritize by severity and business impact. Use plain language.`;
 
     try {
       const { text } = await geminiClient.generate(prompt, { temperature: 0.3 });

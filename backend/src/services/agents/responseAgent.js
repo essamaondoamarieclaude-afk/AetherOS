@@ -1,7 +1,7 @@
 import { BaseAgent } from './agentBase.js';
 import { SYSTEM_PROMPTS } from '../gemini/promptTemplates.js';
 import { AGENT_NAMES, MCP_TOOLS } from '../../utils/constants.js';
-import { Playbook } from '../database/models/playbooks.js';
+import supabase from '../database/supabaseClient.js';
 
 export class ResponseAgent extends BaseAgent {
   constructor() {
@@ -18,9 +18,14 @@ export class ResponseAgent extends BaseAgent {
   }
 
   async generateRemediation(incidentData, rootCauseReport, analystNotes = '') {
-    const playbooks = await Playbook.find({
-      'triggerConditions.severity': incidentData.severity,
-    }).limit(5);
+    const { data: playbooks } = await supabase
+      .from('playbooks')
+      .select('*')
+      .limit(5);
+
+    const matched = (playbooks || []).filter((p) =>
+      (p.trigger_conditions || []).some((tc) => tc.severity === incidentData.severity),
+    );
 
     const context = {
       get_problems: { problemId: incidentData.dynatraceProblemId },
@@ -28,13 +33,13 @@ export class ResponseAgent extends BaseAgent {
       get_metrics: {},
       run_usql_query: {},
       additionalContext: `
-=== Root Cause Report ===
+=== Root Cause Analysis ===
 ${JSON.stringify(rootCauseReport)}
 
 ${analystNotes ? `=== Analyst Notes ===\n${analystNotes}` : ''}
 
 === Available Playbooks ===
-${JSON.stringify(playbooks.map((p) => ({
+${JSON.stringify(matched.map((p) => ({
   name: p.name,
   steps: p.steps,
   successRate: p.successRate,

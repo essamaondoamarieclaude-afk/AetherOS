@@ -1,7 +1,8 @@
+import supabase from '../services/database/supabaseClient.js';
 import logger from '../utils/logger.js';
 import { orchestrator } from '../services/agents/orchestrator.js';
-import { Incident } from '../services/database/models/incidents.js';
 import { generateId, parseSeverity } from '../utils/helpers.js';
+import { toCamelCase } from '../utils/transform.js';
 
 export const handleDynatraceWebhook = async (req, res, next) => {
   try {
@@ -19,24 +20,27 @@ export const handleDynatraceWebhook = async (req, res, next) => {
     if (state === 'OPEN') {
       const incidentId = generateId();
 
-      const incident = new Incident({
-        incidentId,
-        dynatraceProblemId: problemId,
+      const affectedEntities = (payload.ImpactedEntities || payload.affectedEntities || []).map((e) => ({
+        entityId: e.entityId || e.id,
+        displayName: e.displayName || e.name,
+        type: e.type,
+      }));
+
+      const { error } = await supabase.from('incidents').insert({
+        incident_id: incidentId,
+        dynatrace_problem_id: problemId,
         title,
         severity,
         status: 'open',
-        affectedEntities: (payload.ImpactedEntities || payload.affectedEntities || []).map((e) => ({
-          entityId: e.entityId || e.id,
-          displayName: e.displayName || e.name,
-          type: e.type,
-        })),
+        affected_entities: affectedEntities,
         timeline: [{
           event: 'problem_detected',
           actor: 'dynatrace',
           details: `Problem ${problemId} received via webhook`,
         }],
       });
-      await incident.save();
+
+      if (error) throw error;
 
       orchestrator.handleProblemEvent({
         problemId,
@@ -54,20 +58,31 @@ export const handleDynatraceWebhook = async (req, res, next) => {
         message: 'Problem event received, analysis initiated',
       });
     } else if (state === 'RESOLVED' || state === 'CLOSED') {
-      await Incident.findOneAndUpdate(
-        { dynatraceProblemId: problemId },
-        {
-          status: 'resolved',
-          'remediation.resolvedAt': new Date(),
-          $push: {
-            timeline: {
-              event: 'problem_resolved',
-              actor: 'dynatrace',
-              details: `Problem ${problemId} resolved`,
+      const { data: incident } = await supabase
+        .from('incidents').select('*').eq('dynatrace_problem_id', problemId).single();
+
+      if (incident) {
+        const updatedTimeline = [...(incident.timeline || []), {
+          timestamp: new Date().toISOString(),
+          event: 'problem_resolved',
+          actor: 'dynatrace',
+          details: `Problem ${problemId} resolved`,
+        }];
+
+        const { error } = await supabase
+          .from('incidents').update({
+            status: 'resolved',
+            remediation: {
+              ...(incident.remediation || {}),
+              resolvedAt: new Date().toISOString(),
             },
-          },
-        },
-      );
+            timeline: updatedTimeline,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('dynatrace_problem_id', problemId);
+
+        if (error) throw error;
+      }
 
       res.status(200).json({ received: true, problemId, message: 'Problem resolved' });
     } else {

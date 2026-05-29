@@ -12,9 +12,9 @@ import { rateLimiter } from './middleware/rateLimiter.js';
 import { authenticate } from './middleware/auth.js';
 import apiRoutes from './api/routes/index.js';
 import webhookRoutes from './webhooks/index.js';
-import { socketManager } from './services/socket/socketManager.js';
-import { connectMongo } from './services/database/mongoClient.js';
+import { socketManager, stopScheduledAnalyses } from './services/socket/socketManager.js';
 import { connectRedis } from './services/cache/redisClient.js';
+import { initializeHealth } from './services/health.js';
 
 const app = express();
 const httpServer = createServer(app);
@@ -54,20 +54,30 @@ app.use(errorHandler);
 socketManager(io);
 
 const start = async () => {
-  try {
-    await connectMongo();
-    await connectRedis();
+  initializeHealth();
 
-    httpServer.listen(config.port, () => {
-      logger.info(`AetherOS backend running on port ${config.port}`);
-      logger.info(`Environment: ${config.env}`);
-      logger.info(`Dynatrace MCP: ${config.dynatrace.mcpEnabled ? 'enabled' : 'disabled'}`);
-    });
-  } catch (err) {
-    logger.error('Failed to start server', { error: err.message });
-    process.exit(1);
-  }
+  await connectRedis().catch((err) => {
+    logger.warn('Redis unavailable — running without cache', { error: err?.message });
+  });
+
+  httpServer.listen(config.port, () => {
+    logger.info(`AetherOS backend running on port ${config.port}`);
+    logger.info(`Environment: ${config.env}`);
+    logger.info(`Dynatrace MCP: ${config.dynatrace.mcpEnabled ? 'enabled' : 'disabled'}`);
+  });
 };
+
+// Graceful shutdown
+const shutdown = async (signal) => {
+  logger.info(`${signal} received — shutting down gracefully`);
+  stopScheduledAnalyses();
+  io?.close?.();
+  httpServer.close();
+  process.exit(0);
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
 start();
 
