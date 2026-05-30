@@ -1,5 +1,6 @@
 import express from 'express';
 import { createServer } from 'http';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -48,6 +49,14 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
   });
 });
+
+if (config.env === 'production') {
+  const distPath = path.join(process.cwd(), 'dist');
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 app.use(errorHandler);
 

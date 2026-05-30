@@ -6,6 +6,8 @@ const PUBLIC_ROUTES = [
   { path: '/health', method: 'GET' },
   { path: '/auth/login', method: 'POST' },
   { path: '/auth/register', method: 'POST' },
+  { path: '/gemini/query', method: 'POST' },
+  { path: '/gemini/diagnostics', method: 'POST' },
 ];
 
 export const authenticate = (req, res, next) => {

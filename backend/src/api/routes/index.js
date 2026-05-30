@@ -7,6 +7,7 @@ import infrastructureRouter from './infrastructure.js';
 import securityRouter from './security.js';
 import settingsRouter from './settings.js';
 import authRouter from './auth.js';
+import geminiRouter from './gemini.js';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/predictions', predictionsRouter);
 router.use('/infrastructure', infrastructureRouter);
 router.use('/security', securityRouter);
 router.use('/settings', settingsRouter);
+router.use('/gemini', geminiRouter);
 
 export default router;
